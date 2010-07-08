@@ -5,19 +5,19 @@
 
 Gem::Specification.new do |s|
   s.name = %q{woot_sync}
-  s.version = "0.1.0"
+  s.version = "0.1.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jason T. Calhoun"]
-  s.date = %q{2010-06-28}
+  s.date = %q{2010-07-08}
   s.description = %q{WootSync is a library with common methods for interacting with Woot.com.}
   s.email = %q{jtcalhoun@tacostadium.com}
   s.extra_rdoc_files = [
-    "README"
+    "README.rdoc"
   ]
   s.files = [
     ".gitignore",
-     "README",
+     "README.rdoc",
      "Rakefile",
      "VERSION",
      "config/settings.yml",

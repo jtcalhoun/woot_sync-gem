@@ -107,8 +107,8 @@ module WootSync
       # @return [Hash] a hash containing each Shop object
       #++
       def hash
-        inject((Object.const_get(HashWithIndifferentAccess) rescue Hash).new) do |h,s|
-          h.store(s.to_sym, s); h
+        inject((Object.const_get(:HashWithIndifferentAccess) rescue Hash).new) do |h,s|
+          h.store(s.to_s, s); h
         end
       end
       alias_method :to_h, :hash
