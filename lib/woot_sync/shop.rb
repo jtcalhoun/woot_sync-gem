@@ -63,7 +63,10 @@ module WootSync
       # @see fetch
       #++
       def entries(*objects)
-        Array((slice(*objects) rescue nil)) | super()
+        # FIXME Using Array.| (set union) causes ruby 1.8.7 (2009-06-12 patchlevel 174) [universal-darwin10.0] to abort with "[BUG] rb_gc_mark(): unknown data type ... corrupted object".
+        # Array((slice(*objects) rescue nil)) | super()
+
+        (a = Array((slice(*objects) rescue nil))) + (super() - a)
       end
       alias_method :all, :entries
       alias_method :array, :entries
@@ -108,7 +111,7 @@ module WootSync
       #++
       def hash
         inject((Object.const_get(:HashWithIndifferentAccess) rescue Hash).new) do |h,s|
-          h.store(s.to_s, s); h
+          h.store(s.to_sym, s); h
         end
       end
       alias_method :to_h, :hash
