@@ -6,6 +6,10 @@
 #  Copyright 2010 Taco Stadium. All rights reserved.
 #++
 
+images:
+    extname:    .jpg
+    suffixes:   [detail, standard, thumbnail]
+
 shops:
     - woot:
         host:   http://www.woot.com

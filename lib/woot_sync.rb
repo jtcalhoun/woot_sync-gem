@@ -7,7 +7,8 @@
 #++
 
 module WootSync
-  autoload :Shop, 'woot_sync/shop'
+  autoload :Image, 'woot_sync/image'
+  autoload :Shop,  'woot_sync/shop'
 
   class << self
 
@@ -31,6 +32,20 @@ module WootSync
     def configure(&block)
       yield self
       return
+    end
+
+    ##
+    # Stores attributes for Woot image files.
+    #--
+    # @param [Hash] hash a string keyed hash of attributes
+    #
+    # @return [Hash] a hash of valid attributes
+    #
+    # @example
+    #   WootSync.images = {'extname' => '.jpg', 'sizes' => ['detail', 'thumbnail', 'standard']}
+    #++
+    def images=(hash)
+      WootSync::Image.configure(hash)
     end
 
     ##
