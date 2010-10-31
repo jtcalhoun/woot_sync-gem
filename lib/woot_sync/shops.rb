@@ -1,15 +1,35 @@
 #--
-#  shop.rb
+#  shops.rb
 #  woot_sync-gem
 #
 #  Created by Jason T. Calhoun on 2010-06-25.
 #  Copyright 2010 Taco Stadium. All rights reserved.
 #++
 
-require 'pathname'
-require 'uri'
-
 module WootSync
+  module Shops
+    extend ActiveSupport::Concern
+
+    included do
+
+      ##
+      # Stores an array of Shop names and attributes as an array of Shop
+      # objects.
+      #--
+      # @param [Array] array an array populated with string keyed hashes in
+      #        the form of [{'shop_name' => {'key' => 'value'}}]
+      #
+      # @return [Array] the array of Shop objects
+      #
+      # @example
+      #   WootSync::Base.config.shops = [{'woot' => {'host' => 'http://www.woot.com'}}, {'wine' => {'host' => 'http://wine.woot.com'}}]
+      #++
+      def config.shops=(array)
+        super(Array(array).flatten.map { |h| (Shop.send(:new, *h.to_a.flatten)) rescue nil }.compact)
+      end
+    end
+  end
+
   class Shop
     class << self
       include Enumerable
@@ -41,7 +61,7 @@ module WootSync
       # @yield [Shop] each Shop in order
       #++
       def each(&block)
-        Array(WootSync.shops).each { |shop| yield(shop) }
+        Array(WootSync::Base.config.shops).flatten.each { |shop| yield(shop) }
       end
 
       ##
@@ -222,27 +242,25 @@ module WootSync
 
     include Comparable
 
-    private_class_method :new
-
     ##
-    # Creates a new Shop object from an array of attributes in the format
-    # ['shop_name', {'attribute' => 'value'}].
+    # Creates a new Shop object.
     #--
     # @private
     #
-    # @param [Array] array an array where the first value is the name of the
-    #        Shop and the second value is a string key hash of attributes
+    # @param [String] name the string identifier for the Shop
+    # @param [Hash] attributes a hash of attributes
     #
     # @return [Shop] a newly initialized Shop object
     #
     # @example
-    #   shop = Shop.new(['woot', {'host' => 'http://www.woot.com'}]) # => #<Shop woot>
-    #   shop.name                                                    # => "woot"
-    #   shop.host                                                    # => "http://www.woot.com"
+    #   shop = Shop.new('woot', {'host' => 'http://www.woot.com'}) # => #<Shop woot>
+    #   shop.name                                                  # => "woot"
+    #   shop.host                                                  # => "http://www.woot.com"
     #++
-    def initialize(array) # :nodoc:
-      @attributes = {'name' => array.shift}.merge(array.shift).freeze
+    def initialize(name, attributes)
+      @attributes = {'name' => name}.merge(attributes).freeze
     end
+    private_class_method :new
 
     ##
     # Returns a Shop attribute for the given key.
@@ -321,6 +339,18 @@ module WootSync
     end
     alias_method :to_i, :index
     alias_method :to_int, :index
+
+    ##
+    # Returns a simplified string for inspection.
+    #--
+    # @return [String] the Shop as a string
+    #
+    # @example
+    #   WootSync::Shop.woot # => #<WootSync::Shop#woot>
+    #++
+    def inspect
+      "#<#{self.class}##{name}>"
+    end
 
     ##
     # Returns the host as a new Pathname object with the given +path+ string

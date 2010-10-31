@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jason T. Calhoun"]
-  s.date = %q{2010-10-21}
+  s.date = %q{2010-10-30}
   s.description = %q{WootSync is a library with common methods for interacting with Woot.com.}
   s.email = %q{jtcalhoun@tacostadium.com}
   s.extra_rdoc_files = [
@@ -22,8 +22,11 @@ Gem::Specification.new do |s|
      "VERSION",
      "config/settings.yml",
      "lib/woot_sync.rb",
-     "lib/woot_sync/shop.rb",
+     "lib/woot_sync/base.rb",
+     "lib/woot_sync/image.rb",
+     "lib/woot_sync/shops.rb",
      "test/helper.rb",
+     "test/image_test.rb",
      "test/shops_test.rb",
      "woot_sync.gemspec"
   ]
@@ -34,6 +37,7 @@ Gem::Specification.new do |s|
   s.summary = %q{WootSync is a library with common methods for interacting with Woot.com.}
   s.test_files = [
     "test/helper.rb",
+     "test/image_test.rb",
      "test/shops_test.rb"
   ]
 
@@ -42,11 +46,14 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
+      s.add_runtime_dependency(%q<activesupport>, ["= 3.0.0"])
       s.add_development_dependency(%q<shoulda>, [">= 0"])
     else
+      s.add_dependency(%q<activesupport>, ["= 3.0.0"])
       s.add_dependency(%q<shoulda>, [">= 0"])
     end
   else
+    s.add_dependency(%q<activesupport>, ["= 3.0.0"])
     s.add_dependency(%q<shoulda>, [">= 0"])
   end
 end

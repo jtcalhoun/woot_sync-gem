@@ -7,8 +7,11 @@
 #++
 
 images:
-    extname:    .jpg
-    suffixes:   [detail, standard, thumbnail]
+    extname:        .jpg
+    suffixes:
+        thumbnail:  [128,  96]
+        standard:   [456, 342]
+        detail:     [768, 576]
 
 shops:
     - woot:

@@ -15,27 +15,27 @@ class ShopsTest < Test::Unit::TestCase
   DEFAULT_SHOPS = DEFAULT_NAMES.inject([]) { |a,s| a << WootSync::Shop[s] }
 
   context 'WootSync configuration' do
-    teardown { WootSync.shops = SETTINGS }
+    teardown { WootSync::Base.config.shops = SETTINGS }
 
     should 'load default Shop information from config/settings.yml' do
       default_keys = DEFAULT_NAMES.sort
-      loaded_keys  = WootSync.shops.map { |s| s.name }.sort
+      loaded_keys  = WootSync::Base.config.shops.map { |s| s.name }.sort
 
       assert_equal default_keys, loaded_keys
     end
 
     should 'allow the default Shop values to be overridden' do
-      default_shop = WootSync.shops.first
+      default_shop = WootSync::Base.config.shops.first
       assert_not_nil default_shop
 
       # Override the default Shop values.
-      WootSync.shops = [{'test' => {'host' => 'http://test.woot.com'}}]
+      WootSync::Base.config.shops = [{'test' => {'host' => 'http://test.woot.com'}}]
 
-      assert_not_equal default_shop, WootSync.shops.first
+      assert_not_equal default_shop, WootSync::Base.config.shops.first
     end
 
     should 'assign the @shops instance variable as an array of Shop objects' do
-      types = WootSync.shops.map { |s| "#{s.class}" }.uniq
+      types = WootSync::Base.config.shops.map { |s| "#{s.class}" }.uniq
       assert_equal 1, types.length
       assert_equal 'WootSync::Shop', types[0]
     end

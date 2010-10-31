@@ -6,34 +6,20 @@
 #  Copyright 2010 Taco Stadium. All rights reserved.
 #++
 
-require 'pathname'
-require 'uri'
-
 module WootSync
   class Image < Pathname
     class << self
 
-      attr_reader :extname, :suffixes
-
       ##
-      # Stores attributes for Woot image files.
+      # Returns the native file extension for Woot images.
       #--
-      # @param [Hash] hash a string keyed hash of attributes
-      #
-      # @return [Hash] a hash of valid attributes
-      #
-      # @raise [ArgumentError] raised if the argument is not a Hash
+      # @return [String] a file extension preceeded by a period
       #
       # @example
-      #   Image.configure = {'extname' => '.jpg', 'sizes' => ['detail', 'thumbnail', 'standard']}
+      #   WootSync::Image.extname # => '.jpg'
       #++
-      def configure(hash)
-        raise ArgumentError, 'argument must be a Hash' unless hash.is_a?(Hash)
-
-        valid_arguments = %w(extname suffixes)
-        hash.delete_if { |k,v| !valid_arguments.include?(k) }
-
-        hash.each { |(k,v)| eval("@#{k} = #{v.inspect}") }
+      def extname
+        WootSync::Base.config.images.try(:[], 'extname') || ''
       end
 
       ##
@@ -60,6 +46,18 @@ module WootSync
 
         paths = paths.select { |v| valid?(v) }.compact.uniq.map { |v| new(v) }
         paths.inject({}) { |h,v| h.store(v.suffix, v); h }
+      end
+
+      ##
+      # Returns an array of valid Woot image suffixes.
+      #--
+      # @return [Array] an array of suffixes as strings
+      #
+      # @example
+      #   WootSync::Image.suffixes # => ['detail', 'standard', 'thumbnail']
+      #++
+      def suffixes
+        Array(WootSync::Base.config.images.try(:[], 'suffixes').try(:keys))
       end
 
       ##
