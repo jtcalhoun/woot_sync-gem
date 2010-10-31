@@ -24,6 +24,7 @@ begin
     gem.has_rdoc    = true
 
     gem.add_dependency 'activesupport', '3.0.0'
+    gem.add_dependency 'mechanize', '1.0.0'
 
     gem.add_development_dependency 'shoulda', '>= 0'
   end

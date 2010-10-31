@@ -6,23 +6,29 @@
 #  Copyright 2010 Taco Stadium. All rights reserved.
 #++
 
+require 'logger'
 require 'pathname'
 require 'uri'
 
 require 'active_support'
-require 'active_support/core_ext/object/try'
+require 'active_support/core_ext/object'
 
 module WootSync
   extend ActiveSupport::Autoload
 
   eager_autoload do
+    autoload :VERSION
     autoload :Base
+    autoload :Connection
     autoload :Image
     autoload :Shops
   end
 end
 
 WootSync::Base.configure do |b|
+
+  b.logger = Logger.new(STDOUT)
+
   begin
     require 'erb'
 
