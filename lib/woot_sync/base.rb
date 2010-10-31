@@ -10,11 +10,8 @@ require 'active_support/configurable'
 
 module WootSync
   class Base
-    class << self
-      delegate :logger, :logger=, :to => :config
-    end
-
     include ActiveSupport::Configurable
+    config_accessor :logger, :user_agent
   end
 
   Base.class_eval do

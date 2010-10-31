@@ -25,6 +25,7 @@ Gem::Specification.new do |s|
      "lib/woot_sync/base.rb",
      "lib/woot_sync/connection.rb",
      "lib/woot_sync/image.rb",
+     "lib/woot_sync/railtie.rb",
      "lib/woot_sync/shops.rb",
      "lib/woot_sync/version.rb",
      "test/helper.rb",
