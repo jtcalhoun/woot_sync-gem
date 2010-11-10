@@ -39,4 +39,5 @@ shops:
         epoch:      2009-08-18T05:00:00Z
         expiry:     86400
 
-user_agent:         WootSync/%s
+site_host:          http://wootspy.com
+user_agent:         %{lib}

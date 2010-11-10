@@ -11,7 +11,7 @@ require 'active_support/configurable'
 module WootSync
   class Base
     include ActiveSupport::Configurable
-    config_accessor :logger, :user_agent
+    config_accessor :logger
   end
 
   Base.class_eval do

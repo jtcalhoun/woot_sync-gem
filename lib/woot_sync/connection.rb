@@ -9,16 +9,26 @@
 require 'mechanize'
 
 module WootSync
+  class ConnectionError < WootSyncException; end
+
   module Connection
     extend ActiveSupport::Concern
 
     included do
+      config_accessor :site_host
+      config_accessor :user_agent
+
       def config.user_agent=(string)
-        string = string % WootSync::VERSION::STRING
+        unless string.blank?
+          parts  = {'lib' => "WootSync/#{WootSync::VERSION::STRING}", 'host' => site_host}
+          string = (RUBY_VERSION >= '1.9') ? string % parts : begin
+            string.gsub(/%\{([^\}]+)\}/, '%s') % string.scan(/%\{([^\}]+)\}/).flatten.map { |k| parts[k] }
+          end
 
-        Mechanize::AGENT_ALIASES.merge!({'WootSync' => string}) unless string.blank?
+          Mechanize::AGENT_ALIASES.merge!({'WootSync' => string})
+        end
 
-        super(string)
+        super
       end
     end
 
