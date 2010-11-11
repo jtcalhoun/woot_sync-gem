@@ -1,11 +1,3 @@
-#--
-#  image_test.rb
-#  woot_sync-gem
-#
-#  Created by Jason T. Calhoun on 2010-10-24.
-#  Copyright 2010 Taco Stadium. All rights reserved.
-#++
-
 require 'helper'
 
 class ImageTest < Test::Unit::TestCase

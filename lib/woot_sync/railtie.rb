@@ -1,11 +1,3 @@
-#--
-#  railtie.rb
-#  woot_sync-gem
-#
-#  Created by Jason T. Calhoun on 2010-10-31.
-#  Copyright 2010 Taco Stadium. All rights reserved.
-#++
-
 module WootSync
 
   def self.load_settings!

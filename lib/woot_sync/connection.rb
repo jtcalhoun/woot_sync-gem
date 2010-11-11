@@ -1,11 +1,3 @@
-#--
-#  connection.rb
-#  woot_sync-gem
-#
-#  Created by Jason T. Calhoun on 2010-10-30.
-#  Copyright 2010 Taco Stadium. All rights reserved.
-#++
-
 require 'mechanize'
 
 module WootSync

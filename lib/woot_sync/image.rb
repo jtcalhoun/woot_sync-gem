@@ -1,11 +1,3 @@
-#--
-#  image.rb
-#  woot_sync-gem
-#
-#  Created by Jason T. Calhoun on 2010-10-21.
-#  Copyright 2010 Taco Stadium. All rights reserved.
-#++
-
 module WootSync
   class Image < Pathname
     class << self

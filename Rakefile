@@ -1,11 +1,3 @@
-#--
-#  Rakefile
-#  woot_sync-gem
-#
-#  Created by Jason T. Calhoun on 2010-06-24.
-#  Copyright 2010 Taco Stadium. All rights reserved.
-#++
-
 require 'rubygems'
 require 'rake'
 
@@ -20,8 +12,6 @@ begin
     gem.email       = 'jtcalhoun@tacostadium.com'
     gem.homepage    = 'http://wootspy.com'
     gem.authors     = ['Jason T. Calhoun']
-
-    gem.has_rdoc    = true
 
     gem.add_dependency 'activesupport', '3.0.0'
     gem.add_dependency 'mechanize', '1.0.0'
@@ -45,17 +35,6 @@ task :test    => :check_dependencies
 task :default => :test
 
 namespace :doc do
-  require 'rake/rdoctask'
-
-  Rake::RDocTask.new do |rdoc|
-    version = File.exist?('VERSION') ? File.read('VERSION') : nil
-
-    rdoc.rdoc_dir = 'doc/rdoc'
-    rdoc.title    = ['WootSync', version].compact.join(' ')
-
-    rdoc.rdoc_files.include('README*')
-    rdoc.rdoc_files.include('lib/**/*.rb')
-  end
 
   begin
     require 'yard'
