@@ -79,6 +79,16 @@ module WootSync
       alias_method :to_array, :entries
 
       ##
+      # Returns the earliest Shop epoch value.
+      #
+      # @return [Time] a Time object
+      # @example
+      #   Shop.epoch # => Wed Feb 22 06:00:00 UTC 2006
+      def epoch
+        map { |s| s.epoch }.min rescue nil
+      end
+
+      ##
       # Returns the first defined Shop which corresponds to the given object.
       #
       # @param [Shop, String, Symbol, #to_i] object either a Shop object, a
@@ -191,6 +201,25 @@ module WootSync
       #
       def slice(object, *objects)
         (Array(object) + objects).flatten.inject([]) { |a,o| a << (fetch(o) rescue nil) }.compact
+      end
+
+      ##
+      # Evaluates whether the given object, when parsed as a Time, is between
+      # the epoch of the earliest Shop and the end of the current day.
+      #
+      # @param [Object] object an object that can be parsed to create a Time
+      # @return [Boolean] true or false
+      # @example
+      #   Shop.valid_date?('1900-01-01')  # => false
+      #   Shop.valid_date?(Date.tomorrow) # => false
+      #   Shop.valid_date?(Time.now)      # => true
+      # @see epoch
+      #
+      def valid_date?(object)
+        unless !object || object.to_s.empty? || epoch.nil?
+          Time.parse(object.to_s).utc.between?(epoch.utc, Date.tomorrow.to_time.utc - 0.000001)
+        else false
+        end
       end
 
       private

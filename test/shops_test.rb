@@ -153,6 +153,23 @@ class ShopsTest < Test::Unit::TestCase
     end
   end
 
+  context 'Shop#valid_date?' do
+    should 'return false if no parseable object is provided' do
+      assert !WootSync::Shop.valid_date?(nil)
+      assert !WootSync::Shop.valid_date?(false)
+      assert !WootSync::Shop.valid_date?('')
+    end
+
+    should 'return true if the date or time provided is between the epoch of the earliest Shop and the end of the current day' do
+      assert WootSync::Shop.valid_date?(Time.now)
+      assert WootSync::Shop.valid_date?(Date.today)
+      assert WootSync::Shop.valid_date?(WootSync::Shop.epoch)
+
+      assert !WootSync::Shop.valid_date?('1950-01-01')
+      assert !WootSync::Shop.valid_date?(Date.tomorrow)
+    end
+  end
+
   context 'Shop#method_missing' do
     should 'return a Shop object if the given method name corresponds to a defined Shop name or raise a NoMethodError' do
       assert_equal DEFAULT_SHOPS[0], WootSync::Shop.send(DEFAULT_NAMES[0])
