@@ -8,6 +8,7 @@ module WootSync
 
   Base.class_eval do
     include Connection
+    include Images
     include Shops
   end
 end

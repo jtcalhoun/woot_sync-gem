@@ -11,7 +11,7 @@ module WootSync
 
   autoload :Base
   autoload :Connection
-  autoload :Image
+  autoload :Images
   autoload :Parser
   autoload :Shops
   autoload :VERSION

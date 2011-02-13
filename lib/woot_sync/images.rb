@@ -1,4 +1,14 @@
 module WootSync
+  module Images
+    extend ActiveSupport::Concern
+
+    included do
+      config.class_eval do
+        delegate :suffixes, :to => Image
+      end
+    end
+  end
+
   class Image < Pathname
     class << self
 
@@ -11,7 +21,7 @@ module WootSync
       #   WootSync::Image.extname # => '.jpg'
       #++
       def extname
-        WootSync::Base.config.images.try(:[], 'extname') || ''
+        Base.config.images.try(:[], 'extname') || ''
       end
 
       ##
@@ -49,7 +59,7 @@ module WootSync
       #   WootSync::Image.suffixes # => ['detail', 'standard', 'thumbnail']
       #++
       def suffixes
-        Array(WootSync::Base.config.images.try(:[], 'suffixes').try(:keys))
+        Array(Base.config.images.try(:[], 'suffixes').try(:keys))
       end
 
       ##
