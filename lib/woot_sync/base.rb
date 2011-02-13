@@ -1,4 +1,4 @@
-require 'active_support/configurable'
+require 'logger'
 
 module WootSync
   class Base

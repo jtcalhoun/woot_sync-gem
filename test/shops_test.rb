@@ -11,7 +11,7 @@ class ShopsTest < Test::Unit::TestCase
 
     should 'load default Shop information from config/settings.yml' do
       default_keys = DEFAULT_NAMES.sort
-      loaded_keys  = WootSync::Base.config.shops.map { |s| s.name }.sort
+      loaded_keys  = WootSync::Base.shops.map { |s| s.name }.sort
 
       assert_equal default_keys, loaded_keys
     end
@@ -26,8 +26,8 @@ class ShopsTest < Test::Unit::TestCase
       assert_not_equal default_shop, WootSync::Base.config.shops.first
     end
 
-    should 'assign the @shops instance variable as an array of Shop objects' do
-      types = WootSync::Base.config.shops.map { |s| "#{s.class}" }.uniq
+    should 'assign the @@shops class variable as an array of Shop objects' do
+      types = WootSync::Base.shops.map { |s| "#{s.class}" }.uniq
       assert_equal 1, types.length
       assert_equal 'WootSync::Shop', types[0]
     end

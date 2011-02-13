@@ -1,8 +1,14 @@
+require 'pathname'
+require 'uri'
+
+require 'active_support/time'
+
 module WootSync
   module Shops
     extend ActiveSupport::Concern
 
     included do
+      cattr_reader :shops
 
       ##
       # Stores an array of Shop names and attributes as an array of Shop
@@ -15,7 +21,8 @@ module WootSync
       #   WootSync::Base.config.shops = [{'woot' => {'host' => 'http://www.woot.com'}}, {'wine' => {'host' => 'http://wine.woot.com'}}]
       #
       def config.shops=(array)
-        super(Array(array).flatten.map { |h| (Shop.send(:new, *h.to_a.flatten)) rescue nil }.compact)
+        Base.send(:class_variable_set, :@@shops, Array(array).flatten.map { |h| (Shop.send(:new, *h.to_a.flatten)) rescue nil }.compact)
+        super
       end
     end
   end
@@ -48,7 +55,7 @@ module WootSync
       # @yield [Shop] each Shop in order
       #
       def each(&block)
-        Array(WootSync::Base.config.shops).flatten.each { |shop| yield(shop) }
+        Array(Base.shops).flatten.each { |shop| yield(shop) }
       end
 
       ##

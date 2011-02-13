@@ -1,3 +1,5 @@
+require 'pathname'
+
 module WootSync
   module Images
     extend ActiveSupport::Concern

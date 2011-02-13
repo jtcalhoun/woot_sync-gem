@@ -1,10 +1,5 @@
-require 'logger'
-require 'pathname'
-require 'uri'
-
 require 'active_support'
 require 'active_support/core_ext/class'
-require 'active_support/core_ext/object'
 
 module WootSync
   extend ActiveSupport::Autoload

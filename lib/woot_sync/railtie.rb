@@ -14,7 +14,7 @@ module WootSync
         warn 'WARNING: could not load WootSync settings file'
       end
 
-      base.logger = Logger.new(STDOUT)
+      base.logger ||= Logger.new(STDOUT)
     end
   end
 
