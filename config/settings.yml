@@ -1,3 +1,8 @@
+connection:
+    api_host:       http://wootspy.dev:3000
+    credentials:    []
+    site_host:      http://wootspy.com
+    user_agent:     %{lib}
 
 images:
     extname:        .jpg
@@ -31,6 +36,3 @@ shops:
         host:       http://kids.woot.com
         epoch:      2009-08-18T05:00:00Z
         expiry:     86400
-
-site_host:          http://wootspy.com
-user_agent:         %{lib}

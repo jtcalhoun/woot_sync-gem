@@ -14,8 +14,8 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = '>= 1.3.6'
   s.rubyforge_project         = 'woot_sync-gem'
 
-  s.add_runtime_dependency 'mechanize', '1.0.0'
   s.add_runtime_dependency 'activesupport', '~> 3'
+  s.add_runtime_dependency 'oauth2', '0.1.1'
 
   s.add_development_dependency 'shoulda', '>= 0'
 
