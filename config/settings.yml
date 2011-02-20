@@ -11,28 +11,37 @@ images:
         standard:   [456, 342]
         detail:     [768, 576]
 
+parser:
+    statuses:       ['On Sale', 'Sold Out', 'Ended']
+    timezone:       America/Chicago
+
 shops:
     - woot:
         host:       http://www.woot.com
         epoch:      2006-02-22T06:00:00Z
         expiry:     86400
+        source:     salerss
 
     - wine:
         host:       http://wine.woot.com
         epoch:      2006-05-22T05:00:00Z
         expiry:     604800
+        source:     salerss
 
     - shirt:
         host:       http://shirt.woot.com
         epoch:      2007-07-20T05:00:00Z
         expiry:     86400
+        source:     salerss
 
     - sellout:
         host:       http://sellout.woot.com
         epoch:      2007-09-13T05:00:00Z
         expiry:     86400
+        source:     homepage
 
     - kids:
         host:       http://kids.woot.com
         epoch:      2009-08-18T05:00:00Z
         expiry:     86400
+        source:     salerss

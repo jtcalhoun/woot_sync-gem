@@ -15,6 +15,7 @@ Gem::Specification.new do |s|
   s.rubyforge_project         = 'woot_sync-gem'
 
   s.add_runtime_dependency 'activesupport', '~> 3'
+  s.add_runtime_dependency 'nokogiri', '1.4.4'
   s.add_runtime_dependency 'oauth2', '0.1.1'
 
   s.add_development_dependency 'shoulda', '>= 0'
