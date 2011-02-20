@@ -58,11 +58,15 @@ module WootSync
       delegate *(Faraday::Connection::METHODS.to_a + [{:to => :connection}])
       delegate :build_url, :url_prefix=, :to => :'client.client.connection'
 
+      def api_host
+        (s = config.connection['api_host'].to_s.strip).present? ? s : config.connection['site_host']
+      end
+
       def client
         @token ||= begin
           id, secret = config.connection['credentials']
 
-          client = OAuth2::Client.new(id, secret, {:site => config.connection['api_host'], :parse_json => true})
+          client = OAuth2::Client.new(id, secret, {:site => api_host, :parse_json => true})
           client.get_access_token
         end
       end

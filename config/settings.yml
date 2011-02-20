@@ -1,5 +1,4 @@
 connection:
-    api_host:       http://wootspy.dev:3000
     credentials:    []
     site_host:      http://wootspy.com
     user_agent:     %{lib}
