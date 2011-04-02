@@ -1,17 +1,26 @@
+$:.unshift File.dirname(File.expand_path(__FILE__))
+
 require 'active_support'
-require 'active_support/core_ext/class'
 
 module WootSync
   extend ActiveSupport::Autoload
 
-  autoload :Base
   autoload :Connection
   autoload :Images
   autoload :Parser
   autoload :Shops
+  autoload :Railtie
   autoload :VERSION
 
   class WootSyncException < StandardError; end
+  include ActiveSupport::Configurable
+
+  # Pretend like this is a Class when Rails checks to see if it's superclass
+  # has any inheritable configuration options.
+  def self.superclass; Object; end
+
+  config_accessor :logger
 end
 
-require 'woot_sync/railtie'
+WootSync::Railtie.load_settings!
+WS = WootSync

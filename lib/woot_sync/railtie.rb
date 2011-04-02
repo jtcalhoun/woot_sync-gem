@@ -1,38 +1,68 @@
+require 'active_support/core_ext/module/aliasing'
+
 module WootSync
+  module Railtie
+    class << self
 
-  def self.load_settings!
-    WootSync::Base.configure do |base|
-      begin
-        require 'erb'
+      ##
+      # Sets configuration variables and values from a file
+      # +config/settings.yml+ in the gem's root directory. Loads any OAuth
+      # credentials from the +WOOT_SYNC_AUTH+ environment variable, if
+      # provided.
+      #
+      # @param [Hash] hash an optional string-keyed Hash of config values
+      # @return [ActiveSupport::InheritableOptions] the configuration hash
+      # @example
+      #   WootSync::Railtie.load_settings!({'var' => 'value'}) # => #<OrderedHash {:var => 'value', :shops => [{"woot" => ...}]}>
+      #
+      def load_settings!(hash = {})
+        WootSync.configure do |config|
+          begin
+            require 'yaml'
 
-        load_path = File.expand_path('../../../config/settings.yml', __FILE__)
+            path = File.expand_path('../../../config/settings.yml', __FILE__)
+            yaml = YAML::load(IO.read(path)) || {}
 
-        (YAML::load(ERB.new(IO.read(load_path)).result) || {}).each do |k,v|
-          base.send("#{k}=", v)
+            if (ws_auth = (ENV['WOOT_SYNC_AUTH'].to_s.split(':'))).any?
+              yaml['client'] ||= {}
+              yaml['client'].merge!({'credentials' => ws_auth})
+            end
+
+            yaml.merge(hash).each do |k,v|
+              config.send("#{k}=", v)
+            end
+          rescue Errno::ENOENT
+            warn 'WARNING: could not load WootSync settings file'
+          end
+
+          config.logger ||= begin
+            require 'logger'
+            Logger.new(STDOUT)
+          end
         end
-      rescue Errno::ENOENT
-        warn 'WARNING: could not load WootSync settings file'
+
+        return WootSync.config
       end
 
-      base.logger ||= Logger.new(STDOUT)
+      if defined?(Rails::Railtie)
+        def load_settings_with_rails!
+          # Do nothing.
+        end
+
+        alias_method_chain :load_settings!, :rails
+
+        class Railtie < Rails::Railtie
+          config.woot_sync = ActiveSupport::OrderedOptions.new
+
+          initializer 'woot_sync.load_settings' do |app|
+            WootSync::Railtie.load_settings_without_rails!(app.config.woot_sync)
+          end
+
+          initializer 'woot_sync.logger', :after => 'woot_sync.load_settings' do
+            WootSync.logger = Rails.logger
+          end
+        end
+      end
     end
-  end
-
-  if defined?(Rails::Railtie)
-    class Railtie < Rails::Railtie
-      config.woot_sync = ActiveSupport::OrderedOptions.new
-
-      initializer 'woot_sync.load_settings' do |app|
-        WootSync.load_settings!
-        app.config.woot_sync.each { |k,v| WootSync::Base.send("#{k}=", v) }
-      end
-
-      initializer 'woot_sync.logger', :after => 'woot_sync.load_settings' do
-        WootSync::Base.logger = Rails.logger
-      end
-    end
-
-  else
-    WootSync.load_settings!
   end
 end
