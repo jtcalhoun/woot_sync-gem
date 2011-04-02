@@ -4,29 +4,6 @@ require 'uri'
 require 'active_support/time'
 
 module WootSync
-  module Shops
-    extend ActiveSupport::Concern
-
-    included do
-      cattr_reader :shops
-
-      ##
-      # Stores an array of Shop names and attributes as an array of Shop
-      # objects.
-      #
-      # @param [Array] array an array populated with string keyed hashes in
-      #        the form of [{'shop_name' => {'key' => 'value'}}]
-      # @return [Array] the array of Shop objects
-      # @example
-      #   WootSync::Base.config.shops = [{'woot' => {'host' => 'http://www.woot.com'}}, {'wine' => {'host' => 'http://wine.woot.com'}}]
-      #
-      def config.shops=(array)
-        Base.send(:class_variable_set, :@@shops, Array(array).flatten.map { |h| (Shop.send(:new, *h.to_a.flatten)) rescue nil }.compact)
-        super
-      end
-    end
-  end
-
   class Shop
     class << self
       include Enumerable
@@ -55,7 +32,11 @@ module WootSync
       # @yield [Shop] each Shop in order
       #
       def each(&block)
-        Array(Base.shops).flatten.each { |shop| yield(shop) }
+        WootSync.config.shop_objects ||= begin
+          WootSync.config.shops.map { |h| (Shop.send(:new, *h.to_a.flatten) rescue nil) }.compact
+        end
+
+        Array(WootSync.config.shop_objects).each { |shop| yield(shop) }
       end
 
       ##
@@ -255,7 +236,6 @@ module WootSync
     # Creates a new Shop object.
     #
     # @private
-    # @param [String] name the string identifier for the Shop
     # @param [Hash] attributes a hash of attributes
     # @return [Shop] a newly initialized Shop object
     # @example
@@ -264,7 +244,7 @@ module WootSync
     #   shop.host                                                  # => "http://www.woot.com"
     #
     def initialize(name, attributes)
-      @attributes = {'name' => name}.merge(attributes).freeze
+      @attributes = {'name' => name}.merge(attributes)
     end
     private_class_method :new
 
@@ -371,6 +351,24 @@ module WootSync
     #
     def shop
       self
+    end
+
+    ##
+    # Returns the type of URL used by the Parser for current sale information.
+    #
+    # @return [String] the source type
+    #
+    def source
+      self['source'][0]
+    end
+
+    ##
+    # Returns the URL used by the Parser for current sale information.
+    #
+    # @return [String] the source URL
+    #
+    def source_url
+      self['source'][1]
     end
 
     ##

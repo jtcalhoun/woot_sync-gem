@@ -8,8 +8,8 @@ module WootSync
   autoload :Connection
   autoload :Images
   autoload :Parser
-  autoload :Shops
   autoload :Railtie
+  autoload :Shop
   autoload :VERSION
 
   class WootSyncException < StandardError; end
