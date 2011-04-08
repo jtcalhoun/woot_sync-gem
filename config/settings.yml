@@ -1,4 +1,4 @@
-connection:
+client:
     credentials:    []
     site_host:      http://wootspy.com
     user_agent:     %{lib}

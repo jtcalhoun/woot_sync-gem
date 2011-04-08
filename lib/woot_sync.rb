@@ -5,8 +5,8 @@ require 'active_support'
 module WootSync
   extend ActiveSupport::Autoload
 
-  autoload :Connection
   autoload :Images
+  autoload :Client
   autoload :Parser
   autoload :Railtie
   autoload :Shop
