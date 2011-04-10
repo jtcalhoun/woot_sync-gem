@@ -3,16 +3,13 @@ client:
     site_host:      http://wootspy.com
     user_agent:     %{lib}
 
-images:
-    extname:        .jpg
-    suffixes:
-        thumbnail:  [128,  96]
-        standard:   [456, 342]
-        detail:     [768, 576]
-
 parser:
     statuses:       ['On Sale', 'Sold Out', 'Ended']
     timezone:       America/Chicago
+    images:
+        thumbnail:  [128,  96]
+        standard:   [456, 342]
+        detail:     [768, 576]
 
 shops:
     - woot:

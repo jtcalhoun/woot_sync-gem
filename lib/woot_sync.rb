@@ -5,14 +5,12 @@ require 'active_support'
 module WootSync
   extend ActiveSupport::Autoload
 
-  autoload :Images
   autoload :Client
   autoload :Parser
   autoload :Railtie
   autoload :Shop
   autoload :VERSION
 
-  class WootSyncException < StandardError; end
   include ActiveSupport::Configurable
 
   # Pretend like this is a Class when Rails checks to see if it's superclass
