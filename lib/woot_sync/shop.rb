@@ -98,6 +98,7 @@ module WootSync
       def fetch(object)
         case object
           when self           then object
+          when Hash           then fetch(object[:name] || object['name'])
           when Numeric        then entries.slice(object.to_int)
           when String, Symbol then find { |s| s.name == object.to_s.downcase }
         end or raise(IndexError, "'#{object}' is not a valid #{self.name}")
