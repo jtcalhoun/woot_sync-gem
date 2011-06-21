@@ -6,8 +6,8 @@ module WootSync
   extend ActiveSupport::Autoload
 
   autoload :Client
-  autoload :Parser
   autoload :Railtie
+  autoload :Sale
   autoload :Shop
   autoload :VERSION
 
