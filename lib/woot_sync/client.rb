@@ -2,6 +2,16 @@ require 'active_support/core_ext/hash/reverse_merge'
 require 'em-http'
 
 module EventMachine
+  module HttpEncoding
+    def escape(s)
+      URI.encode_www_form_component(s)
+    end
+
+    def unescape(s)
+      URI.decode_www_form_component(s)
+    end
+  end
+
   module Middleware
     class JSONResponse
       def response(resp)
@@ -51,11 +61,9 @@ module WootSync
         WootSync.config.user_agent ||= begin
           user_agent, site_host = WootSync.config.client.values_at('user_agent', 'site_host')
 
-          parts = {'lib' => "#{WootSync.name}/#{VERSION::STRING}", 'host' => site_host}
+          parts = {:lib => "#{WootSync.name}/#{VERSION::STRING}", :host => site_host}
 
-          (RUBY_VERSION >= '1.9') ? user_agent % parts : begin
-            user_agent.gsub(/%\{([^\}]+)\}/, '%s') % user_agent.scan(/%\{([^\}]+)\}/).flatten.map { |k| parts[k] }
-          end
+          user_agent % parts
         end
       end
     end
@@ -87,35 +95,19 @@ module WootSync
       RUBY_EVAL
     end
 
-    def save(object, &block)
-      raise 'argument must be a Sale' unless object.acts_like?(:sale)
-
-      sale = object.attributes
-      woot = sale.delete('woot')
-
-      woot_post = post(:path => url_to_path('woots'), :body => {'woot' => woot}, :keepalive => true)
-      woot_post.callback do
-        method, path = begin
-          if sale.include?('url')
-            [:put, url_to_path(sale['url'])]
-          else
-            [:post, url_to_path(woot_post.response_header['LOCATION'], 'sales')]
-          end
-        end
-
-        sale_save = send(method, :path => path, :body => {'sale', sale}, :keepalive => true)
-        sale_save.callback do
-          sale_get = get(:path => url_to_path(sale_save.response_header['LOCATION']))
-          sale_get.callback do
-            yield(sale_get.response)
-          end
-        end
+    def sale(url, &block)
+      get(:path => url_to_path(url)).callback do |result|
+        yield(result.response)
       end
     end
 
     def today(&block)
-      get(:path => url_to_path('sales/today')).callback do |result|
-        yield(result.response.inject(Hash.new({})) { |h,r| h.store(r['shop']['name'], r); h })
+      get(:path => url_to_path('sales')).callback do |result|
+        hash = result.response.inject(Hash.new({})) do |h,r|
+          h.store(r['shop']['name'], r) unless r.nil?; h
+        end
+
+        yield(hash)
       end
     end
 
