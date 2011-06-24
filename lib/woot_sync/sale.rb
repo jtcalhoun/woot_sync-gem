@@ -59,7 +59,7 @@ module WootSync
           # 4. Convert consecutive spaces and underscores into a single underscore.
           # 5. Remove leading and trailing underscores.
           # .............[1].....................[2]......[3].................[4].................[5]
-          token = string.mb_chars.normalize(:kd).downcase.gsub(/[^\w ]/n, '').gsub(/[ _]+/n, '_').slice(/^_*(.*?)_*$/n, 1).to_s
+          token = string.mb_chars.normalize(:kd).downcase.gsub(/[^\w ]/u, '').gsub(/[ _]+/u, '_').slice(/^_*(.*?)_*$/u, 1).to_s
 
           # Limit the token to MAXIMUM_TOKEN_LENGTH characters.
           if token.length > MAXIMUM_TOKEN_LENGTH
