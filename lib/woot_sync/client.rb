@@ -50,10 +50,10 @@ module WootSync
     API_FORMAT = :json
 
     class << self
-      def run(&block)
+      def run(host = nil, &block)
         EM::run do
           EM::HttpRequest.use EM::Middleware::Logger
-          new.callback(&block)
+          new(host).callback(&block)
         end
       end
 
@@ -72,8 +72,8 @@ module WootSync
 
     attr_accessor :headers, :host
 
-    def initialize
-      @host = (WootSync.config.client['api_host'] || WootSync.config.client['site_host'])
+    def initialize(host = nil)
+      @host  = host || (WootSync.config.client['api_host'] || WootSync.config.client['site_host'])
 
       access_grant = {'grant_type' => 'none'}
       access_grant['client_id'], access_grant['client_secret'] = WootSync.config.client['credentials']
