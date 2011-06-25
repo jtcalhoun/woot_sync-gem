@@ -49,6 +49,9 @@ module WootSync
 
     API_FORMAT = :json
 
+    class ClientError < WootSync::Exception; end
+    class RecordInvalid < ClientError; end
+
     class << self
       def run(host = nil, &block)
         EM::run do
@@ -70,40 +73,44 @@ module WootSync
 
     include EM::Deferrable
 
-    attr_accessor :headers, :host
+    attr_accessor :access_token, :host, :queue
 
     def initialize(host = nil)
+      @queue = EM::Queue.new
       @host  = host || (WootSync.config.client['api_host'] || WootSync.config.client['site_host'])
 
-      access_grant = {'grant_type' => 'none'}
-      access_grant['client_id'], access_grant['client_secret'] = WootSync.config.client['credentials']
+      authorize { succeed(self) }
+    end
 
-      result = new_request.post(:path => 'oauth/access_token', :body => access_grant)
-      result.callback do
-        @headers = {'Authorization' => "OAuth #{result.response['access_token']}"}
-        succeed(self)
+    def request(method, url, body = nil, &block)
+      server = raw_request.send(method, args_with_auth(:path => url_to_path(url), :body => body))
+      server.callback do
+        case server.response_header.status
+        when 200, 201
+          yield(WootSync::Sale.new(server.response))
+        when 304
+          get(server.response_header.location, nil, &block)
+        when 401
+          queue.push([method, url, body, block])
+          authorize(&self.method(:empty_queue).to_proc) unless queue.size > 1
+        when 422
+          raise RecordInvalid, "Validation failed: #{server.response['errors'].join(', ')}"
+        end
       end
-
-      result.errback { fail }
     end
 
     EM::HTTPMethods.public_instance_methods.each do |method|
       class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-        def #{method}(*args)
-          new_request.send(:#{method}, *args_with_auth(args))
+        def #{method}(*args, &block)
+          request(:#{method}, *args, &block)
         end
       RUBY_EVAL
     end
 
-    def sale(url, &block)
-      get(:path => url_to_path(url)).callback do |result|
-        yield(result.response)
-      end
-    end
-
     def today(&block)
-      get(:path => url_to_path('sales')).callback do |result|
-        hash = result.response.inject(Hash.new({})) do |h,r|
+      server = raw_request.get(args_with_auth(:path => url_to_path('sales')))
+      server.callback do
+        hash = server.response.inject(Hash.new({})) do |h,r|
           h.store(r['shop']['name'], r) unless r.nil?; h
         end
 
@@ -113,16 +120,19 @@ module WootSync
 
     private
 
-      def args_with_auth(args = [])
-        options = args.extract_options!
-        options[:head] ||= {}
-        options[:head].reverse_merge!(headers)
+      def authorize(&block)
+        access_grant = {'grant_type' => 'none'}
+        access_grant['client_id'], access_grant['client_secret'] = WootSync.config.client['credentials']
 
-        args << options
+        server = raw_request.post(:path => 'oauth/access_token', :body => access_grant)
+        server.callback do
+          @access_token = server.response['access_token']
+          yield
+        end
       end
 
-      def new_request
-        request = EM::HttpRequest.new(host)
+      def raw_request(*args)
+        request = EM::HttpRequest.new(host, *args)
         request.use EM::Middleware::JSONResponse
 
         return request
@@ -130,6 +140,25 @@ module WootSync
 
       def url_to_path(string, file = '')
         string.chomp('.json').scan(/^(#{host})?(.+)$/).flatten.last.to_s + (file.present? ? "/#{file}" : '') + ".#{API_FORMAT}"
+      end
+
+      def args_with_auth(*args)
+        options = args.extract_options!
+        options[:head] ||= {}
+        options[:head].reverse_merge!({'Authorization' => "OAuth #{access_token}"})
+
+        return options
+      end
+
+      def empty_queue
+        continue = proc do |args|
+          block = args.pop
+
+          request(*args, &block)
+          queue.pop(&continue)
+        end
+
+        queue.pop(&continue)
       end
   end
 end

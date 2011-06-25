@@ -18,6 +18,8 @@ module WootSync
   def self.superclass; Object; end
 
   config_accessor :logger
+
+  class Exception < StandardError; end
 end
 
 WootSync::Railtie.load_settings!

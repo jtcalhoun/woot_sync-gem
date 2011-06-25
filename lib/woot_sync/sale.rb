@@ -11,11 +11,15 @@ module WootSync
 
       MAXIMUM_TOKEN_LENGTH = 50
 
+      # Use the old script instead of /SaleStats.aspx?wootsaleid=%s
+      # because the former includes the product thumbnail image.
+      SCRIPT_PATH = 'scripts/dynamic.aspx?control=salesummary&saleid=%s'
+
       UNIQUE_ATTRIBUTES = %w(forum_url number blog_url)
 
       module ClassMethods
 
-        def summarize(shop, string)
+        def parse_summary(shop, string)
           parts = string.to_s.strip.split(' : ')
           parts.map! { |r| r.strip if r.kind_of?(String) }
 
