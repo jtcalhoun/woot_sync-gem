@@ -52,6 +52,8 @@ module WootSync
     class ClientError < WootSync::Exception; end
     class RecordInvalid < ClientError; end
 
+    class ServerError < WootSync::Exception; end
+
     class << self
       def run(host = nil, &block)
         EM::run do
@@ -94,7 +96,9 @@ module WootSync
           queue.push([method, url, body, block])
           authorize(&self.method(:empty_queue).to_proc) unless queue.size > 1
         when 422
-          raise RecordInvalid, "Validation failed: #{server.response['errors'].join(', ')}"
+          yield(RecordInvalid.new("Validation failed: #{server.response['errors'].join(', ')}"))
+        when 500
+          yield(ServerError.new("Internal Server Error"))
         end
       end
     end
