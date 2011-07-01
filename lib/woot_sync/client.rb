@@ -101,6 +101,10 @@ module WootSync
           yield(ServerError.new("Internal Server Error"))
         end
       end
+
+      server.errback do
+        yield(ServerError.new('Connection to remote server failed.'))
+      end
     end
 
     EM::HTTPMethods.public_instance_methods.each do |method|
@@ -113,11 +117,20 @@ module WootSync
 
     def today(&block)
       server = raw_request.get(args_with_auth(:path => url_to_path('sales')))
+      hash   = Hash.new({})
+
       server.callback do
-        hash = server.response.inject(Hash.new({})) do |h,r|
-          h.store(r['shop']['name'], r) unless r.nil?; h
+        if server.response
+          hash = server.response.inject(hash) do |h,r|
+            h.store(r['shop']['name'], r) unless r.nil?; h
+          end
         end
 
+        yield(hash)
+      end
+
+      server.errback do
+        WootSync.logger.warn 'Could not retrieve latest Sale records.'
         yield(hash)
       end
     end
@@ -132,6 +145,11 @@ module WootSync
         server.callback do
           @access_token = server.response['access_token']
           yield
+        end
+
+        server.errback do
+          WootSync.logger.error 'Access token request failed.'
+          EM::add_timer(20, proc { authorize(&block) })
         end
       end
 
