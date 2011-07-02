@@ -1,6 +1,7 @@
 $:.unshift File.dirname(File.expand_path(__FILE__))
 
 require 'active_support'
+require 'active_support/core_ext/hash'
 
 module WootSync
   extend ActiveSupport::Autoload
