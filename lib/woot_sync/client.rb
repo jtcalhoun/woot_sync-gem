@@ -1,5 +1,6 @@
 require 'active_support/core_ext/hash/reverse_merge'
 require 'em-http'
+require 'em-http/middleware/json_response'
 
 module EventMachine
   module HttpEncoding
@@ -13,16 +14,6 @@ module EventMachine
   end
 
   module Middleware
-    class JSONResponse
-      def response(resp)
-        begin
-          body = ActiveSupport::JSON.decode(resp.response)
-          resp.response = body
-        rescue Exception => e
-        end
-      end
-    end
-
     class Logger
       def request(client, head, body)
         WootSync.logger.info "#{client.req.method.upcase} #{client.req.uri}"
