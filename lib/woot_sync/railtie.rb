@@ -17,22 +17,29 @@ module WootSync
       #
       def load_settings!(hash = {})
         WootSync.configure do |config|
-          begin
-            require 'yaml'
+          settings = {}
 
-            path = File.expand_path('../../../config/settings.yml', __FILE__)
-            yaml = YAML::load(IO.read(path)) || {}
+          [
+            File.expand_path('../../../config/settings.yml', __FILE__),
+            File.join(Dir.home, '.wootsync'),
+            File.join(Dir.pwd, '.wootsync')
+          ].each do |file|
+            begin
+              settings.deep_merge!(YAML::load(IO.read(file)) || {})
 
-            if (ws_auth = (ENV['WOOT_SYNC_AUTH'].to_s.split(':'))).any?
-              yaml['client'] ||= {}
-              yaml['client'].merge!({'credentials' => ws_auth})
+            rescue Errno::ENOENT
+              # Do nothing.
             end
+          end
 
-            yaml.merge(hash).each do |k,v|
+          settings.deep_merge!(hash)
+
+          if settings.empty?
+            warn 'WARNING: no WootSync configuration provided'
+          else
+            settings.each do |k,v|
               config.send("#{k}=", v)
             end
-          rescue Errno::ENOENT
-            warn 'WARNING: could not load WootSync settings file'
           end
 
           config.logger ||= begin
