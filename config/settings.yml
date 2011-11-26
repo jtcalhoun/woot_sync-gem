@@ -42,3 +42,9 @@ shops:
         epoch:      2009-08-18T05:00:00Z
         expiry:     86400
         source:     ['salerss', 'http://api.woot.com/1/sales/current.rss/kids.woot.com']
+
+    - home:
+        host:       'http://home.woot.com'
+        epoch:      2011-10-24T05:00:00Z
+        expiry:     86400
+        source:     ['salerss', 'http://api.woot.com/1/sales/current.rss/home.woot.com']
