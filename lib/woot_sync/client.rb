@@ -45,6 +45,8 @@ module WootSync
 
     class ServerError < WootSync::Exception; end
 
+    class AuthenticationError < WootSync::Exception; end
+
     class << self
       def run(host = nil, &block)
         EM::run do
@@ -134,8 +136,13 @@ module WootSync
 
         server = raw_request.post(:path => 'oauth/access_token', :body => access_grant)
         server.callback do
-          @access_token = server.response['access_token']
-          yield
+          case server.response_header.status
+          when 200
+            @access_token = server.response['access_token']
+            yield
+          else
+            raise AuthenticationError, "Unauthenticated Client"
+          end
         end
 
         server.errback do
