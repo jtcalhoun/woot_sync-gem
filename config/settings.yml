@@ -1,6 +1,6 @@
 client:
     credentials:    []
-    api_host:       'https://wootspy.com'
+    api_host:       'https://wootspy.herokuapp.com'
     site_host:      'http://wootspy.com'
     user_agent:     '%{lib}'
 
