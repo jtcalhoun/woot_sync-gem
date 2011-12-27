@@ -33,7 +33,6 @@ module WootSync
           end
 
           if (env_credentials = ENV["WOOT_SYNC_AUTH"].to_s.split(":")).any?
-            puts "FOUND MY VARIABLE!"
             settings.deep_merge!({"client" => {"credentials" => env_credentials}})
           end
 
