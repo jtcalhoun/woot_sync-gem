@@ -33,25 +33,21 @@ module EventMachine
   end
 end
 
-EM::HttpRequest.use EM::Middleware::UserAgent
-
 module WootSync
   class Client
 
-    API_FORMAT = :json
-
     class ClientError < WootSync::Exception; end
-    class RecordInvalid < ClientError; end
-
-    class ServerError < WootSync::Exception; end
-
-    class AuthenticationError < WootSync::Exception; end
 
     class << self
-      def run(host = nil, &block)
-        EM::run do
-          EM::HttpRequest.use EM::Middleware::Logger
-          new(host).callback(&block)
+      def run(*args, &block)
+        client = new(*args)
+
+        EM::HttpRequest.use(EM::Middleware::Logger)
+
+        if EM.reactor_running?
+          client.authorize(&block)
+        else
+          EM.run(client.method(:authorize).to_proc(&block))
         end
       end
 
@@ -66,38 +62,10 @@ module WootSync
       end
     end
 
-    include EM::Deferrable
-
-    attr_accessor :access_token, :host, :queue
+    attr_accessor :access_token, :host
 
     def initialize(host = nil)
-      @queue = EM::Queue.new
       @host  = host || (WootSync.config.client['api_host'] || WootSync.config.client['site_host'])
-
-      authorize { succeed(self) }
-    end
-
-    def request(method, url, body = nil, &block)
-      server = raw_request.send(method, args_with_auth(:path => url_to_path(url), :body => body))
-      server.callback do
-        case server.response_header.status
-        when 200, 201
-          yield(WootSync::Sale.new(server.response))
-        when 304
-          get(server.response_header.location, nil, &block)
-        when 401
-          queue.push([method, url, body, block])
-          authorize(&self.method(:empty_queue).to_proc) unless queue.size > 1
-        when 422
-          yield(RecordInvalid.new("Validation failed: #{server.response['errors'].join(', ')}"))
-        when 500
-          yield(ServerError.new("Internal Server Error"))
-        end
-      end
-
-      server.errback do
-        yield(ServerError.new('Connection to remote server failed.'))
-      end
     end
 
     EM::HTTPMethods.public_instance_methods.each do |method|
@@ -108,77 +76,54 @@ module WootSync
       RUBY_EVAL
     end
 
-    def today(&block)
-      server = raw_request.get(args_with_auth(:path => url_to_path('sales')))
-      hash   = Hash.new({})
-
-      server.callback do
-        if server.response
-          hash = server.response.inject(hash) do |h,r|
-            h.store(r['shop']['name'], r) unless r.nil?; h
-          end
-        end
-
-        yield(hash)
-      end
-
-      server.errback do
-        WootSync.logger.warn 'Could not retrieve latest Sale records.'
-        yield(hash)
-      end
-    end
-
     private
 
       def authorize(&block)
         access_grant = {'grant_type' => 'none'}
         access_grant['client_id'], access_grant['client_secret'] = WootSync.config.client['credentials']
 
-        server = raw_request.post(:path => 'oauth/access_token', :body => access_grant)
-        server.callback do
-          case server.response_header.status
-          when 200
-            @access_token = server.response['access_token']
-            yield
+        callback = proc do |request|
+          @access_token = request.response["access_token"]
+          yield(self)
+        end
+
+        post("oauth/access_token", :body => access_grant, &callback)
+      end
+
+      def errback
+        proc do |request|
+          raise ClientError
+        end
+      end
+
+      def request(method, uri, *args, &block)
+        uri  = URI.join(self.host, uri.to_s)
+        http = EventMachine::HttpRequest.new(uri.to_s)
+
+        http.use(EM::Middleware::UserAgent)
+
+        options = args.extract_options!
+
+        if uri.host == URI.parse(self.host).host
+          http.use(EventMachine::Middleware::JSONResponse)
+
+          options[:head] ||= {}
+          options[:head].reverse_merge!({'Authorization' => "OAuth #{access_token}"})
+        end
+
+        response = http.send(method, options)
+
+        response.errback(&errback)
+        response.callback do |request|
+          case request.response_header.status
+          when 200..201
+            yield(request)
+          when 304
+            get(request.response_header.location, &block)
           else
-            raise AuthenticationError, "Unauthenticated Client"
+            errback.call(request)
           end
         end
-
-        server.errback do
-          WootSync.logger.error 'Access token request failed.'
-          EM::add_timer(20, proc { authorize(&block) })
-        end
-      end
-
-      def raw_request(*args)
-        request = EM::HttpRequest.new(host, *args)
-        request.use EM::Middleware::JSONResponse
-
-        return request
-      end
-
-      def url_to_path(string, file = '')
-        string.chomp('.json').scan(/^(#{host})?(.+)$/).flatten.last.to_s + (file.present? ? "/#{file}" : '') + ".#{API_FORMAT}"
-      end
-
-      def args_with_auth(*args)
-        options = args.extract_options!
-        options[:head] ||= {}
-        options[:head].reverse_merge!({'Authorization' => "OAuth #{access_token}"})
-
-        return options
-      end
-
-      def empty_queue
-        continue = proc do |args|
-          block = args.pop
-
-          request(*args, &block)
-          queue.pop(&continue)
-        end
-
-        queue.pop(&continue)
       end
   end
 end
