@@ -139,6 +139,10 @@ module WootSync
 
           return hash
         end
+
+        def wootoff?
+          (attributes["wootoff_id"] || attributes["wootoff"]).present?
+        end
       end
     end
 
