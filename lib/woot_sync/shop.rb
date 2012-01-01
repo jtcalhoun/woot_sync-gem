@@ -206,7 +206,7 @@ module WootSync
       #
       def valid_date?(object)
         unless !object || object.to_s.empty? || epoch.nil?
-          Time.parse(object.to_s).utc.between?(epoch.utc, Date.tomorrow.to_time.utc - 0.000001)
+          Time.parse(object.to_s).utc.between?(epoch.utc, (Date.today + 1).to_time.utc - 0.000001)
         else false
         end
       end
