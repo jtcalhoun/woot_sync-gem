@@ -135,7 +135,7 @@ module WootSync
             'price'    => sale['price'].to_s.scan(/^\$?(.*)/).flatten.first.to_f
           })
 
-          hash['progress'] = sale['progress'].to_f if sale['wootoff'].eql?(true)
+          hash['progress'] = sale['progress'].to_f if wootoff?
 
           return hash
         end
