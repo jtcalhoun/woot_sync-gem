@@ -35,7 +35,7 @@ shops:
         host:       'http://sellout.woot.com'
         epoch:      2007-09-13T05:00:00Z
         expiry:     86400
-        source:     ['homepage', 'http://sellout.woot.com']
+        source:     ['salerss', 'http://api.woot.com/1/sales/current.rss/sellout.woot.com']
 
     - kids:
         host:       'http://kids.woot.com'
