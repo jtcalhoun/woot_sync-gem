@@ -116,7 +116,7 @@ module WootSync
         response.errback(&errback)
         response.callback do |request|
           case request.response_header.status
-          when 200..201
+          when 200..201, 301..303
             yield(request)
           when 304
             get(request.response_header.location, &block)
