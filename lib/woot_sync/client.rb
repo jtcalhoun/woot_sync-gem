@@ -37,6 +37,8 @@ module WootSync
   class Client
 
     class ClientError < WootSync::Exception; end
+    class ClientRefused < ClientError; end
+    class ClientTimedOut < ClientError; end
 
     class << self
       def run(*args, &block)
@@ -91,14 +93,24 @@ module WootSync
       end
 
       def errback
-        proc do |request|
-          raise ClientError
+        proc do |http|
+          klass, message = catch :error do
+            if http.error == Errno::ETIMEDOUT
+              throw :error, [ClientTimedOut, "The connection to %s has timed out."]
+            elsif http.error == Errno::ECONNREFUSED
+              throw :error, [ClientRefused, "The connection to %s was refused."]
+            else
+              throw :error, [ClientError, "An unknown error occurred while connecting to %s."]
+            end
+          end
+
+          raise klass, message % http.req.uri
         end
       end
 
       def request(method, uri, *args, &block)
         uri  = URI.join(self.host, uri.to_s)
-        http = EventMachine::HttpRequest.new(uri.to_s)
+        http = EventMachine::HttpRequest.new(uri.to_s, :inactivity_timeout => 30)
 
         http.use(EM::Middleware::UserAgent)
 
@@ -108,7 +120,7 @@ module WootSync
           http.use(EventMachine::Middleware::JSONResponse)
 
           options[:head] ||= {}
-          options[:head].reverse_merge!({'Authorization' => "OAuth #{access_token}"})
+          options[:head].reverse_merge!({'Authorization' => "OAuth #{access_token}"}) if access_token.present?
         end
 
         response = http.send(method, options)
