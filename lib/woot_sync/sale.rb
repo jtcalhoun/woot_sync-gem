@@ -32,11 +32,16 @@ module WootSync
           end
 
           parts[keys['price']]    = parts[keys['price']].to_s.match(/^\$?(.*)$/)[1].to_f
-          parts[keys['progress']] = parts[keys['progress']].to_s.match(/(\d*)%?/)[1].to_i if keys['progress']
+          parts[keys["progress"]] = parts[keys['progress']].to_s.match(/(\d*)%?/)[1].to_f / 100 if keys["progress"]
 
           parts[keys['status']] ||= DEFAULT_STATUS
 
-          attributes = {'woot' => {'name' => parts[keys.delete('name')]}, 'shop' => WS::Shop[shop].name}
+          attributes = {
+            "woot"    => {"name" => parts[keys.delete("name")]},
+            "shop"    => WS::Shop[shop].name,
+            "wootoff" => keys["progress"].present?
+          }
+
           attributes.merge!(keys.inject({}) { |h,(k,v)| h.store(k, parts[v]); h })
 
           attributes
@@ -108,6 +113,7 @@ module WootSync
 
           if changes.empty? then 0
           elsif (changes & UNIQUE_ATTRIBUTES).any? then 1
+          elsif (changes.include?("progress") && changes.size.eql?(1)) then 2
           else -1
           end
         end
@@ -135,7 +141,7 @@ module WootSync
             'price'    => sale['price'].to_s.scan(/^\$?(.*)/).flatten.first.to_f
           })
 
-          hash['progress'] = sale['progress'].to_f if wootoff?
+          hash["progress"] = on_sale? ? sale["progress"].to_f : 0.0 if wootoff?
 
           return hash
         end
