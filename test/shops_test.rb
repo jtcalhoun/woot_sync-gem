@@ -117,12 +117,6 @@ class ShopsTest < Test::Unit::TestCase
     end
   end
 
-  context 'Shop#hash' do
-    should 'create a hash from each defined Shop' do
-      assert_equal DEFAULT_SHOPS.inject({}) { |h,s| h.store(s.to_sym, s); h }, WootSync::Shop.hash
-    end
-  end
-
   context 'Shop#index' do
     should 'return the numeric index of the Shop in a Shop.entries array' do
       assert_equal DEFAULT_NAMES.index((n = DEFAULT_NAMES[-1])), WootSync::Shop.index(n)
@@ -150,6 +144,12 @@ class ShopsTest < Test::Unit::TestCase
   context 'Shop#names' do
     should 'return an array of strings for each Shop name' do
       assert_equal DEFAULT_NAMES, WootSync::Shop.names
+    end
+  end
+
+  context 'Shop#to_hash' do
+    should 'create a hash from each defined Shop' do
+      assert_equal DEFAULT_SHOPS.inject({}) { |h,s| h.store(s.to_sym, s); h }, WootSync::Shop.to_hash
     end
   end
 

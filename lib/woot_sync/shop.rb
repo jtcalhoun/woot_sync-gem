@@ -105,20 +105,6 @@ module WootSync
       end
 
       ##
-      # Returns a hash with symbolized Shop names as keys and Shop objects as
-      # values.
-      #
-      # @return [Hash] a hash containing each Shop object
-      #
-      def hash
-        inject((Object.const_get(:HashWithIndifferentAccess) rescue Hash).new) do |h,s|
-          h.store(s.to_sym, s); h
-        end
-      end
-      alias_method :to_h, :hash
-      alias_method :to_hash, :hash
-
-      ##
       # Returns the numeric index of a defined Shop object.
       #
       # @param [Object] object any object which maps to a defined Shop
@@ -155,15 +141,6 @@ module WootSync
       alias_method :size, :length
 
       ##
-      # Returns the name of this class.
-      #
-      # @return [String] the class name
-      #
-      def name
-        super.split('::').last
-      end
-
-      ##
       # Returns an array populated with each Shop as a string.
       #
       # @return [Array] an array of String objects
@@ -191,6 +168,19 @@ module WootSync
       def slice(object, *objects)
         (Array(object) + objects).flatten.inject([]) { |a,o| a << (fetch(o) rescue nil) }.compact
       end
+
+      ##
+      # Returns a hash with symbolized Shop names as keys and Shop objects as
+      # values.
+      #
+      # @return [Hash] a hash containing each Shop object
+      #
+      def to_hash
+        inject((Object.const_get(:HashWithIndifferentAccess) rescue Hash).new) do |h,s|
+          h.store(s.to_sym, s); h
+        end
+      end
+      alias_method :to_h, :to_hash
 
       ##
       # Evaluates whether the given object, when parsed as a Time, is between
