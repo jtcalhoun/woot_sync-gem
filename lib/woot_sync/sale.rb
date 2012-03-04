@@ -85,70 +85,67 @@ module WootSync
         end
       end
 
-      module InstanceMethods
-
-        SALE_STATUSES.each do |status|
-          class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-            def #{status.delete(' ').underscore}?
-              attributes['status'] == '#{status}'
-            end
-          RUBY_EVAL
-        end
-
-        def <=>(other)
-          return nil unless other.acts_like?(:sale)
-
-          was = self.normalize
-          now = other.normalize
-
-          common_keys = was.keys & now.keys
-
-          changes = common_keys.select do |field|
-            if was[field] != now[field]
-              WootSync.logger.debug("#{field} has changed (was: #{was[field]}, now: #{now[field]})")
-              true
-            else false
-            end
+      SALE_STATUSES.each do |status|
+        class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+          def #{status.delete(' ').underscore}?
+            attributes['status'] == '#{status}'
           end
+        RUBY_EVAL
+      end
 
-          if changes.empty? then 0
-          elsif (changes & UNIQUE_ATTRIBUTES).any? then 1
-          elsif (changes.include?("progress") && changes.size.eql?(1)) then 2
-          else -1
+      def <=>(other)
+        return nil unless other.acts_like?(:sale)
+
+        was = self.normalize
+        now = other.normalize
+
+        common_keys = was.keys & now.keys
+
+        changes = common_keys.select do |field|
+          if was[field] != now[field]
+            WootSync.logger.debug("#{field} has changed (was: #{was[field]}, now: #{now[field]})")
+            true
+          else false
           end
         end
 
-        def acts_like_sale?
-          true
+        if changes.empty? then 0
+        elsif (changes & UNIQUE_ATTRIBUTES).any? then 1
+        elsif (changes.include?("progress") && changes.size.eql?(1)) then 2
+        else -1
         end
+      end
 
-        ##
-        # Returns +true+ if the Sale status is Sold Out or Ended.
-        #
-        # @return [bool] either true or false
-        #
-        def finished?
-          sold_out? or ended?
-        end
+      def acts_like_sale?
+        true
+      end
 
-        def normalize
-          sale = attributes
-          woot = self.woot.attributes rescue sale['woot']
+      ##
+      # Returns +true+ if the Sale status is Sold Out or Ended.
+      #
+      # @return [bool] either true or false
+      #
+      def finished?
+        sold_out? or ended?
+      end
 
-          hash = sale.slice(*UNIQUE_ATTRIBUTES).merge({
-            'name'     => (self.class.tokenize(woot.try(:[], 'name')).upcase rescue nil),
-            'status'   => sale['status'].to_s.upcase,
-            'price'    => sale['price'].to_s.scan(/^\$?(.*)/).flatten.first.to_f
-          })
+      def normalize
+        sale = attributes
+        woot = self.woot.attributes rescue sale['woot']
 
-          hash["progress"] = on_sale? ? sale["progress"].to_f : 0.0 if wootoff?
+        hash = sale.slice(*UNIQUE_ATTRIBUTES).merge({
+          'name'     => (self.class.tokenize(woot.try(:[], 'name')).upcase rescue nil),
+          'status'   => sale['status'].to_s.upcase,
+          'price'    => sale['price'].to_s.scan(/^\$?(.*)/).flatten.first.to_f
+        })
 
-          return hash
-        end
+        hash["progress"] = on_sale? ? sale["progress"].to_f : 0.0 if wootoff?
 
-        def wootoff?
-          (attributes["wootoff_id"] || attributes["wootoff"]).present?
-        end
+        return hash
+      end
+
+      def wootoff?
+        (attributes["wootoff_id"] || attributes["wootoff"]).present?
       end
     end
 
