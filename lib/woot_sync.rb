@@ -7,7 +7,6 @@ module WootSync
   extend ActiveSupport::Autoload
 
   autoload :Client
-  autoload :Railtie
   autoload :Sale
   autoload :Shop
   autoload :VERSION
@@ -23,5 +22,6 @@ module WootSync
   class Exception < StandardError; end
 end
 
-WootSync::Railtie.load_settings!
+require "woot_sync/rails/engine"
+
 WS = WootSync
