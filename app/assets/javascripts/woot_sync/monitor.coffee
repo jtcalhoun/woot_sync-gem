@@ -15,7 +15,7 @@ this.WootSync = ((WootSync, $) ->
   execute = ->
     if deferred and deferred.state() is "pending"
       WootSync
-        .getJSON("sales.json", if lastResponse then {since: lastResponse.toISOString()} else undefined)
+        .getJSON("/sales.json", if lastResponse then {since: lastResponse.toISOString()} else undefined)
         .always (sales, status) =>
           changed = {}
 

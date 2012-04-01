@@ -8,15 +8,16 @@
 
 this.WootSync = ((WootSync, $) ->
   ajaxSettings  =
-    apiHost:  "https://wootspy.herokuapp.com/",
-    siteHost: "http://wootspy.com",
-    clientId: undefined
+    apiHost:   "<%= WootSync.config.client["api_host"] %>"
+    siteHost:  "<%= WootSync.config.client["site_host"] %>",
+    clientId:  undefined
 
   $.extend WootSync,
     ajax: (path = "", options = {}) ->
       $.ajax $.extend options,
-        url: ajaxSettings.apiHost + path,
-        data: ($.extend {}, {client_id: ajaxSettings.clientId}, options.data ? {})
+        url:     ajaxSettings.apiHost + path,
+        headers: ($.extend options.headers ? {}, {"X-Woot-Sync-Version": "<%= WootSync::VERSION::STRING %>"})
+        data:    ($.extend options.data ? {}, {client_id: ajaxSettings.clientId})
 
     ajaxSetup: (settings = {}) ->
       ajaxSettings = $.extend settings, ajaxSettings
