@@ -6,16 +6,36 @@
 #  whole or in part in any form or by any means is prohibited without prior
 #  written consent of Taco Stadium LLC.
 
-this.WootSync = ((WootSync, $) ->
+this.WootSync = (($) ->
+  ajaxSettings =
+    apiHost:   "<%= WootSync.config.client["api_host"] %>",
+    clientId:  undefined,
+    siteHost:  "<%= WootSync.config.client["site_host"] %>",
+    version: "<%= WootSync::VERSION::STRING %>"
+
+  ajaxSetup = (settings = {}) ->
+    ajaxSettings = $.extend settings, ajaxSettings
+
+  ajax = (path = "", options = {}) ->
+    $.ajax $.extend options,
+      url:  ajaxSettings.apiHost + path,
+      data: ($.extend options.data ? {}, {client_id: ajaxSettings.clientId, v: ajaxSettings.version})
+
+  getJSON = (path, data) ->
+    return ajax path,
+      dataType: "json",
+      data:     data
+
   interval     = 60000 * 2 #minutes
   deferred     = undefined
   lastChange   = undefined
-  lastResponse = undefined
+  lastResponse = 0
+  collection   = {}
+  staleTimeout = 60000 * 10 #minutes
 
   execute = ->
     if deferred and deferred.state() is "pending"
-      WootSync
-        .getJSON("/sales.json", if lastResponse then {since: lastResponse.toISOString()} else undefined)
+      getJSON("/sales.json", if lastResponse then {since: lastResponse.toISOString()} else undefined)
         .always (sales, status) =>
           changed = {}
 
@@ -33,34 +53,44 @@ this.WootSync = ((WootSync, $) ->
                   }, sale);
                 }
               });
+              $.extend(collection, changed);
             default:
-              deferred.notify(changed, status)
+              if ($.now() - lastResponse > staleTimeout) {
+                status = "stale";
+              }
+              deferred.notify(changed, status, collection)
               setTimeout(execute, interval);
               break;
           }`
 
           return
 
-  WootSync.monitor = ->
-    this.monitor.start()
+  WootSync = (settings) ->
+    ajaxSetup settings
 
-  $.extend WootSync.monitor,
+    unless deferred and deferred.state() is "pending"
+      deferred = $.Deferred()
+
+    execute()
+
+    deferred.promise()
+
+  $.extend WootSync,
+    ajaxSetup: (settings) ->
+      ajaxSetup settings
+      return this
+
+    getJSON:
+      getJSON
+
     lastChange: ->
       lastChange
 
     lastResponse: ->
       lastResponse
 
-    start: ->
-      unless deferred and deferred.state() is "pending"
-        deferred = $.Deferred()
-
-      execute()
-
-      deferred.promise()
-
     stop: ->
       deferred.resolve()
 
   return WootSync
-) WootSync ? {}, jQuery
+) jQuery
