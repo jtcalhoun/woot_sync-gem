@@ -111,7 +111,7 @@ module WootSync
 
         if changes.empty? then 0
         elsif (changes & UNIQUE_ATTRIBUTES).any? then 1
-        elsif (changes.include?("progress") && changes.size.eql?(1)) then 2
+        elsif (changes.include?("progress") && changes.size.eql?(1)) then -2
         else -1
         end
       end
