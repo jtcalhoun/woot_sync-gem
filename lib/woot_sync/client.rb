@@ -132,7 +132,7 @@ module WootSync
             yield(request)
           when 304
             get(request.response_header.location, &block)
-          when 422
+          when 422, 500
             yield(nil)
           else
             errback.call(request)
