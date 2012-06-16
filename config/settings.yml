@@ -48,3 +48,9 @@ shops:
         epoch:      2011-10-24T05:00:00Z
         expiry:     86400
         source:     ['salerss', 'http://api.woot.com/1/sales/current.rss/home.woot.com']
+
+    - sport:
+        host:       'http://sport.woot.com'
+        epoch:      2012-06-11T05:00:00Z
+        expiry:     86400
+        source:     ['salerss', 'http://api.woot.com/1/sales/current.rss/sport.woot.com']
